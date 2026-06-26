@@ -44,37 +44,33 @@ L4(D7)   [*]     [0]     [#]      [D]
 
 ## Máquina de estados
 
+```mermaid
+stateDiagram-v2
+    DISARMED --> ARMED : senha correta
+    ARMED --> ALARM : PIR detecta
+    ALARM --> DISARMED : senha correta
+    DISARMED --> CONFIG : A-B-A
+    CONFIG --> DISARMED : nova senha
 ```
-DISARMED ───(senha correta)──→ ARMED
-ARMED ─────(PIR detecta)─────→ ALARM
-ALARM ─────(senha correta)───→ DISARMED
-QUALQUER ──(A,B,A)───────────→ CONFIG
-CONFIG ────(nova senha)──────→ DISARMED
-```
-
-## Módulos do código
-
-| Módulo | Responsabilidade |
-|---|---|
-| `i2c.h / i2c.c` | Driver TWI mestre (init, start, stop, write, read) |
-| `lcd.h / lcd.c` | Display LCD via PCF8574 (init, clear, print, setCursor) |
-| `keypad.h / keypad.c` | Escaneamento do teclado 4×4 com debounce |
-| `pir.h / pir.c` | Configuração do PIR + ISR (INT0) |
-| `eeprom.h / eeprom.c` | Leitura/gravação da senha na EEPROM |
-| `alarm.h / alarm.c` | Máquina de estados do alarme |
-| `main.c` | Inicialização e loop principal |
 
 ## Plano de implementação
 
-| Ordem | Módulo | Descrição | Dependências |
-|---|---|---|---|
-| 1 | `i2c.c / i2c.h` | Funções básicas do TWI: `i2c_setup()`, `i2c_start()`, `i2c_stop()`, `i2c_escrita()`, `i2c_leitura()` | Nenhuma |
-| 2 | `lcd.c / lcd.h` | Controle do LCD 16×2 via PCF8574: `lcd_setup()`, `lcd_limpar()`, `lcd_escrever()`, `lcd_ponteiro()` | `i2c` |
-| 3 | `teclado.c / teclado.h` | Varredura do teclado 4×4: `setup_teclado()`, `teclado_scan()`, com debounce por software | Nenhuma |
-| 4 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `setup_pir()`, `checar_pir()` | Nenhuma |
-| 5 | `eeprom.c / eeprom.h` | Leitura e gravação na EEPROM: `setar_senha()`, `ler_senha()`, `senha_existe()` | Nenhuma |
-| 6 | `alarm.c / alarm.h` | Máquina de estados do alarme integrando todos os módulos anteriores | `lcd`, `keypad`, `pir`, `eeprom` |
-| 7 | `main.c` | Configuração geral, `setup_sistema()`, loop principal com polling dos eventos | `alarm` |
+| Nº | Módulo | Descrição | Dependências | Com quem fica |
+|---|---|---|---|---|
+| 1 | `i2c.c / i2c.h` | Funções básicas do TWI: `i2c_setup()`, `i2c_start()`, `i2c_stop()`, `i2c_escrita()`, `i2c_leitura()` | Nenhuma | dev1 |
+| 2 | `lcd.c / lcd.h` | Controle do LCD 16×2 via PCF8574: `lcd_setup()`, `lcd_limpar()`, `lcd_escrever()`, `lcd_ponteiro()` | `i2c` | dev1 |
+| 3 | `teclado.c / teclado.h` | Varredura do teclado 4×4: `setup_teclado()`, `teclado_scan()`, com debounce por software | Nenhuma | dev2 |
+| 4 | `eeprom.c / eeprom.h` | Leitura e gravação na EEPROM: `setar_senha()`, `ler_senha()`, `senha_existe()` | Nenhuma | dev2 |
+| 5 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `setup_pir()`, `checar_pir()` | Nenhuma | main |
+| 6 | `alarm.c / alarm.h` | Máquina de estados do alarme integrando todos os módulos anteriores | `lcd`, `keypad`, `pir`, `eeprom` |  main |
+| 7 | `main.c` | Configuração geral, `setup_sistema()`, loop principal com polling dos eventos | `alarm` |  main |
+
+### Teste (no main.c)
+
+- **dev1**: testar se uma string aparece no display LCD após configurar a comunicação I2C.
+- **dev2**:
+  - **Teclado**: percorrer todas as 16 teclas e verificar se `teclado_scan()` retorna o valor esperado para cada uma; testar o debounce pressionando e soltando rapidamente.
+  - **EEPROM**: gravar uma senha com `setar_senha()`, ler com `ler_senha()` e confirmar que os valores coincidem; testar `senha_existe()` antes e depois de alterar a senha. 
 
 ### Notas
 - Talvez alarm.c possa ser implementado diretamente no main.c.
@@ -82,7 +78,7 @@ CONFIG ────(nova senha)──────→ DISARMED
 - teclado_scan() checa o teclado e retorna alguma tecla pressionada.
 - setar_senha() serve para configurar uma nova senha.
 - ler_senha() vai colocar a senha em um buffer para poder comparar com a senha digitada no teclado.
-- senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica já foi setada.
+- senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica.
 - setup_sistema() só junta todos os setups em uma função só. Pode ser excluído.
 
 ## Como executar o projeto a partir do projeto do Github
