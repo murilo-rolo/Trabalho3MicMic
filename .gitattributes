@@ -1,0 +1,4 @@
+# Ignorar alterações desses arquivos em merges (sempre manter versão local)
+TrabalhoMicMic3/TrabalhoMicMic3.componentinfo.xml merge=ours
+TrabalhoMicMic3/TrabalhoMicMic3.cproj merge=ours
+TrabalhoMicMic3/main.c merge=ours
