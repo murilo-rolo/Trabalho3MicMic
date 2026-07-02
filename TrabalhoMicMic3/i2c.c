@@ -1,5 +1,5 @@
 #include "i2c.h"
-#include "avr/io.h"
+#include <avr/io.h>
 
 void I2C_Init(void){
 	TWSR = 0x00; //Configura o prescaler para 1 (bits TWP0 e TWP1 em 0)
