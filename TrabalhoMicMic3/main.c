@@ -6,13 +6,17 @@
  */ 
 
 #include <avr/io.h>
-
+#include "teclado.h"
 
 int main(void)
 {
-    /* Replace with your application code */
-    while (1) 
-    {
-    }
+	setup_teclado();
+
+	while (1) {
+		char tecla = teclado_scan();
+		if (tecla != 0) {
+			// aqui você já recebeu uma tecla válida
+		}
+	}
 }
 
