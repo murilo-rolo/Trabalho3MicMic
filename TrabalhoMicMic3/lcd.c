@@ -1,5 +1,6 @@
 #include "lcd.h"
 #include "i2c.h"
+#define F_CPU 16000000UL // Assumindo que está a usar 16 MHz
 #include <util/delay.h>
 
 //Bits de controle do PCF8574
@@ -29,6 +30,21 @@ void _LCD_Write_Half(uint8_t half, uint8_t mode){
 	_delay_us(50);
 }
 
+// Função que envia comandos (configurações) de 8 bits para o LCD
+void LCD_Command(uint8_t cmd){
+	// 4 bits mais altos são enviados no modo COMANDO
+	_LCD_Write_Half(cmd & 0xF0, LCD_COMMAND);
+	// 4 bits mais baixos são jogados pra esquerda e enviados
+	_LCD_Write_Half((cmd << 4) & 0xF0, LCD_COMMAND);
+}
+
+void LCD_Write_Char(char data){
+	//4 bits mais altos são enviados no modo DADO
+	_LCD_Write_Half(data & 0xF0, LCD_DATA);
+	//4 bits mais baixos são jogados pra esquerda e enviados
+	_LCD_Write_Half((data<<4) & 0xF0, LCD_DATA);
+}
+
 void LCD_Init(void){
 	_delay_ms(50);
 	
@@ -56,18 +72,13 @@ void LCD_Clear(void){
 	_delay_ms(2);
 }
 
-void LCD_Write_Char(char data){
-	//4 bits mais altos são enviados no modo DADO
-	_LCD_Write_Half(data & 0xF0, LCD_DATA);
-	//4 bits mais baixos são jogados pra esquerda e enviados
-	_LCD_Write_Half((data<<4) & 0xF0, LCD_DATA);
-}
+
 
 void LCD_Write_String(char *str){
 	int i;
 	
 	//Laço de percorrer a palavra até \0
-	for(i=0;str[i] != '\0',i++){
+	for(i=0;str[i] != '\0';i++){
 		LCD_Write_Char(str[i]);
 	}
 }
