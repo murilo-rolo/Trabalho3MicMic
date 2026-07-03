@@ -57,13 +57,12 @@ stateDiagram-v2
 
 | Nº | Módulo | Descrição | Dependências | Com quem fica |
 |---|---|---|---|---|
-| 1 | `i2c.c / i2c.h` | Funções básicas do TWI: `i2c_setup()`, `i2c_start()`, `i2c_stop()`, `i2c_escrita()`, `i2c_leitura()` | Nenhuma | dev1 |
-| 2 | `lcd.c / lcd.h` | Controle do LCD 16×2 via PCF8574: `lcd_setup()`, `lcd_limpar()`, `lcd_escrever()`, `lcd_ponteiro()` | `i2c` | dev1 |
+| 1 | `i2c.c / i2c.h` | Funções básicas do TWI: `I2C_Init()`, `I2C_Start()`, `I2C_Stop()`, `I2C_Write()` | Nenhuma | dev1 |
+| 2 | `lcd.c / lcd.h` | Controle do LCD 16×2 via PCF8574: `LCD_Init()`, `LCD_Clear()`, `LCD_Write_Char()`, `LCD_Write_String()`, `LCD_Ponteiro()`, `LCD_Command()` | `i2c` | dev1 |
 | 3 | `teclado.c / teclado.h` | Varredura do teclado 4×4: `setup_teclado()`, `teclado_scan()`, com debounce por software | Nenhuma | dev2 |
 | 4 | `eeprom.c / eeprom.h` | Leitura e gravação na EEPROM: `setar_senha()`, `ler_senha()`, `senha_existe()` | Nenhuma | dev2 |
-| 5 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `setup_pir()`, `checar_pir()` | Nenhuma | main |
-| 6 | `alarm.c / alarm.h` | Máquina de estados do alarme integrando todos os módulos anteriores | `lcd`, `keypad`, `pir`, `eeprom` |  main |
-| 7 | `main.c` | Configuração geral, `setup_sistema()`, loop principal com polling dos eventos | `alarm` |  main |
+| 5 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `PIR_Init()`, `PIR_Checar()` | Nenhuma | main |
+| 6 | `main.c` | Configuração geral + máquina de estados (`sistema_init()`, `sistema_loop()`) integrando todos os módulos | `i2c`, `lcd`, `teclado`, `eeprom`, `pir` |  main |
 
 ### Teste (no main.c)
 
@@ -73,13 +72,12 @@ stateDiagram-v2
   - **EEPROM**: gravar uma senha com `setar_senha()`, ler com `ler_senha()` e confirmar que os valores coincidem; testar `senha_existe()` antes e depois de alterar a senha. 
 
 ### Notas
-- Talvez alarm.c possa ser implementado diretamente no main.c.
-- lcd_ponteiro() serve para posicionar o cursor do display antes de escrever.
+- LCD_Ponteiro() serve para posicionar o cursor do display antes de escrever.
 - teclado_scan() checa o teclado e retorna alguma tecla pressionada.
 - setar_senha() serve para configurar uma nova senha.
 - ler_senha() vai colocar a senha em um buffer para poder comparar com a senha digitada no teclado.
 - senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica.
-- setup_sistema() só junta todos os setups em uma função só. Pode ser excluído.
+- sistema_init() junta todos os setups em uma função; sistema_loop() executa a máquina de estados.
 
 ## Como executar o projeto a partir do projeto do Github
 
