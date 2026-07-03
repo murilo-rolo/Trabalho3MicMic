@@ -88,7 +88,6 @@ stateDiagram-v2
 ```bash
 git clone https://github.com/murilo-rolo/Trabalho3MicMic
 cd Trabalho3MicMic
-git config merge.ours.driver true
 ```
 O projeto está salvo como projeto do Microchip Studio, então execute esse comando na pasta de projeto padrão do Microchip Studio ou em uma pasta qualquer que você pretenda manter o projeto.
 `git config merge.ours.driver true` serve para manter os arquivos `TrabalhoMicMic3.componentinfo.xml`, `TrabalhoMicMic3.cproj` e `main.c` com a versão local em merges.
