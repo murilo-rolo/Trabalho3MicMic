@@ -7,9 +7,7 @@
 *.dbmdl
 *.db
 Release/
-*.hex
 *.elf
 *.map
 *.o
 *.d
-TrabalhoMicMic3/Debug/
