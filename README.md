@@ -37,10 +37,12 @@ L4(D7)   [*]     [0]     [#]      [D]
 
 ## Senha
 
-- Tamanho fixo: 6 dígitos (Também pode ser de tamanho variável. Pensar na implementação)
-- Senha de fábrica: `123456` (Talvez pode ser colocada na memória Flash, já que será uma constante)
+- Tamanho fixo: 6 dígitos
+- Senha de fábrica: `123456`
 - Armazenada na EEPROM interna
 - Alteração via sequência `A → B → A` no teclado
+- **C** confirma a senha digitada
+- **D** apaga o último dígito
 
 ## Máquina de estados
 
@@ -78,6 +80,7 @@ stateDiagram-v2
 - ler_senha() vai colocar a senha em um buffer para poder comparar com a senha digitada no teclado.
 - senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica.
 - sistema_init() junta todos os setups em uma função; sistema_loop() executa a máquina de estados.
+- coletar_digitos() lê dígitos do teclado até o usuário pressionar **C** (confirma) ou apaga com **D**.
 
 ## Como executar o projeto a partir do projeto do Github
 
