@@ -39,6 +39,16 @@
     <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.42.0" />
   </dependencies>
 </framework-data>
+      <framework-data xmlns="">
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.52.0" />
+        </dependencies>
+      </framework-data>
     </AsfFrameworkConfig>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -124,6 +134,16 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="eeprom.h">
+    <Compile Include="i2c.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="i2c.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="lcd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="lcd.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
