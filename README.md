@@ -61,8 +61,8 @@ stateDiagram-v2
 | 2 | `lcd.c / lcd.h` | Controle do LCD 16×2 via PCF8574: `LCD_Init()`, `LCD_Clear()`, `LCD_Write_Char()`, `LCD_Write_String()`, `LCD_Ponteiro()`, `LCD_Command()` | `i2c` | dev1 |
 | 3 | `teclado.c / teclado.h` | Varredura do teclado 4×4: `setup_teclado()`, `teclado_scan()`, com debounce por software | Nenhuma | dev2 |
 | 4 | `eeprom.c / eeprom.h` | Leitura e gravação na EEPROM: `setar_senha()`, `ler_senha()`, `senha_existe()` | Nenhuma | dev2 |
-| 5 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `PIR_Init()`, `PIR_Checar()` | Nenhuma | main |
-| 6 | `main.c` | Configuração geral + máquina de estados (`sistema_init()`, `sistema_loop()`) integrando todos os módulos | `i2c`, `lcd`, `teclado`, `eeprom`, `pir` |  main |
+| 5 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `PIR_Init()`, `PIR_Checar()` | Nenhuma | dev3 |
+| 6 | `main.c` | Configuração geral + máquina de estados (`sistema_init()`, `sistema_loop()`) integrando todos os módulos | `i2c`, `lcd`, `teclado`, `eeprom`, `pir` |  dev3 |
 
 ### Teste (no main.c)
 
