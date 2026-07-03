@@ -11,3 +11,8 @@ Release/
 *.map
 *.o
 *.d
+*.mk
+Makefile
+*.eep
+*.lss
+*.srec

@@ -1,3 +1,5 @@
+#define F_CPU 16000000UL
+
 #include "lcd.h"
 #include "teclado.h"
 #include "eeprom.h"
