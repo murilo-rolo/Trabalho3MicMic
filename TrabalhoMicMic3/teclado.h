@@ -1,10 +1,9 @@
 #ifndef TECLADO_H_
 #define TECLADO_H_
 
-#include <avr/io.h>
-#include <util/delay.h>
+#include <stdint.h>
 
 void setup_teclado(void);
-char teclado_scan(void);
+char teclado_get_key(void);
 
 #endif
