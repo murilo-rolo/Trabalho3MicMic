@@ -1,7 +1,5 @@
 #define F_CPU 16000000UL
 
-#include <avr/io.h>
-#include <util/delay.h>
 #include "teclado.h"
 
 static const char keymap[4][4] = {

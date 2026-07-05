@@ -1,0 +1,79 @@
+<circuit version="1.1.0-SR2" rev="260312" stepSize="1000000" stepsPS="1000000" NLsteps="100000" reaStep="1000000" animate="0" >
+
+<item itemtype="Aip31068_i2c" CircId="Aip31068_i2c-2" mainComp="false" Show_id="true" Show_Val="false" Pos="-124,-128" rotation="0" hflip="1" vflip="1" label="Aip31068_i2c-2" idLabPos="70,-82" labelrot="0" valLabPos="-16,20" valLabRot="0" Rows="2" Cols="16" Control_Code="39" Frequency="100 _kHz" />
+
+<item itemtype="Bus" CircId="Bus-15" mainComp="false" Show_id="false" Show_Val="false" Pos="-460,4" rotation="90" hflip="1" vflip="1" label="Bus-15" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Num_Bits="4 _bits" Start_Bit="0" />
+
+<item itemtype="Bus" CircId="Bus-16" mainComp="false" Show_id="false" Show_Val="false" Pos="-384,-48" rotation="0" hflip="1" vflip="1" label="Bus-16" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Num_Bits="4 _bits" Start_Bit="0" />
+
+<item itemtype="Bus" CircId="Bus-17" mainComp="false" Show_id="false" Show_Val="false" Pos="-344,-8" rotation="0" hflip="-1" vflip="1" label="Bus-17" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Num_Bits="4 _bits" Start_Bit="0" />
+
+<item itemtype="Bus" CircId="Bus-18" mainComp="false" Show_id="false" Show_Val="false" Pos="-340,-48" rotation="0" hflip="-1" vflip="1" label="Bus-18" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Num_Bits="4 _bits" Start_Bit="0" />
+
+<item itemtype="KeyPad" CircId="KeyPad-20" mainComp="false" Show_id="false" Show_Val="false" Pos="-476,-92" rotation="0" hflip="1" vflip="1" label="KeyPad-20" idLabPos="-8,-16" labelrot="0" valLabPos="-16,20" valLabRot="0" Rows="4" Cols="4" Key_Labels="123A456B789C*0#D" />
+
+<item itemtype="Subcircuit" CircId="Uno-42" mainComp="false" Show_id="true" Show_Val="false" Pos="-328,-120" rotation="0" hflip="1" vflip="1" label="Uno-42" idLabPos="0,-20" labelrot="0" valLabPos="-16,20" valLabRot="0" Logic_Symbol="false">
+<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Program="../TrabalhoMicMic3/Debug/TrabalhoMicMic3.hex" Auto_Load="false" saveEepr="true" MainMcu="false" eeprom="49,50,51,52,53,54," SerialMon="-1" />
+</item>
+
+<item itemtype="Led" CircId="Led-43" mainComp="false" Show_id="false" Show_Val="false" Pos="-384,24" rotation="0" hflip="-1" vflip="1" label="Led-43" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Color="Yellow" Grounded="true" Threshold="2.4 V" MaxCurrent="30 mA" Resistance="0.6 Ω" />
+
+<item itemtype="Led" CircId="Led-44" mainComp="false" Show_id="false" Show_Val="false" Pos="-384,48" rotation="0" hflip="-1" vflip="1" label="Led-44" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Color="Yellow" Grounded="true" Threshold="2.4 V" MaxCurrent="30 mA" Resistance="0.6 Ω" />
+
+<item itemtype="Led" CircId="Led-45" mainComp="false" Show_id="false" Show_Val="false" Pos="-436,-116" rotation="0" hflip="-1" vflip="1" label="Led-45" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Color="Yellow" Grounded="true" Threshold="2.4 V" MaxCurrent="30 mA" Resistance="0.6 Ω" />
+
+<item itemtype="Push" CircId="Push-48" mainComp="false" Show_id="false" Show_Val="false" Pos="-364,-144" rotation="0" hflip="1" vflip="1" label="Push-48" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Norm_Close="false" Poles="1" />
+
+<item itemtype="Rail" CircId="Rail-49" mainComp="false" ShowProp="Voltage" Show_id="false" Show_Val="true" Pos="-392,-168" rotation="90" hflip="1" vflip="1" label="Rail-49" idLabPos="-5,-10" labelrot="-90" valLabPos="-12,6" valLabRot="-90" Voltage="5 V" />
+
+<item itemtype="Connector" uid="Connector-9" startpinid="KeyPad-20-Pin0" endpinid="Bus-16-ePin1" pointList="-412,-84,-392,-84,-392,-72" />
+
+<item itemtype="Connector" uid="Connector-10" startpinid="KeyPad-20-Pin3" endpinid="Bus-16-ePin4" pointList="-412,-36,-392,-36,-392,-48" />
+
+<item itemtype="Connector" uid="Connector-11" startpinid="KeyPad-20-Pin2" endpinid="Bus-16-ePin3" pointList="-412,-52,-392,-52,-392,-56" />
+
+<item itemtype="Connector" uid="Connector-12" startpinid="KeyPad-20-Pin1" endpinid="Bus-16-ePin2" pointList="-412,-68,-392,-68,-392,-64" />
+
+<item itemtype="Connector" uid="Connector-13" startpinid="KeyPad-20-Pin4" endpinid="Bus-15-ePin4" pointList="-476,-20,-460,-20,-460,-4" />
+
+<item itemtype="Connector" uid="Connector-14" startpinid="KeyPad-20-Pin7" endpinid="Bus-15-ePin1" pointList="-428,-20,-436,-20,-436,-4" />
+
+<item itemtype="Connector" uid="Connector-15" startpinid="KeyPad-20-Pin6" endpinid="Bus-15-ePin2" pointList="-444,-20,-444,-4" />
+
+<item itemtype="Connector" uid="Connector-16" startpinid="KeyPad-20-Pin5" endpinid="Bus-15-ePin3" pointList="-460,-20,-460,-4,-452,-4" />
+
+<item itemtype="Connector" uid="Connector-70" startpinid="Uno-42-8" endpinid="Bus-17-ePin1" pointList="-320,-32,-336,-32" />
+
+<item itemtype="Connector" uid="Connector-71" startpinid="Uno-42-9" endpinid="Bus-17-ePin2" pointList="-320,-24,-336,-24" />
+
+<item itemtype="Connector" uid="Connector-72" startpinid="Uno-42-10" endpinid="Bus-17-ePin3" pointList="-320,-16,-336,-16" />
+
+<item itemtype="Connector" uid="Connector-73" startpinid="Uno-42-11" endpinid="Bus-17-ePin4" pointList="-320,-8,-336,-8" />
+
+<item itemtype="Connector" uid="Connector-74" startpinid="Uno-42-4" endpinid="Bus-18-ePin1" pointList="-320,-72,-332,-72" />
+
+<item itemtype="Connector" uid="Connector-75" startpinid="Uno-42-5" endpinid="Bus-18-ePin2" pointList="-320,-64,-332,-64" />
+
+<item itemtype="Connector" uid="Connector-76" startpinid="Uno-42-6" endpinid="Bus-18-ePin3" pointList="-320,-56,-332,-56" />
+
+<item itemtype="Connector" uid="Connector-77" startpinid="Uno-42-7" endpinid="Bus-18-ePin4" pointList="-320,-48,-332,-48" />
+
+<item itemtype="Connector" uid="Connector-78" startpinid="Bus-16-busPinI" endpinid="Bus-18-busPinI" pointList="-384,-72,-340,-72" />
+
+<item itemtype="Connector" uid="Connector-79" startpinid="Bus-15-busPinI" endpinid="Bus-17-ePin0" pointList="-436,4,-344,4,-344,-8" />
+
+<item itemtype="Connector" uid="Connector-80" startpinid="Uno-42-12" endpinid="Led-43-lPin" pointList="-320,0,-340,0,-340,24,-368,24" />
+
+<item itemtype="Connector" uid="Connector-81" startpinid="Uno-42-13" endpinid="Led-44-lPin" pointList="-320,8,-336,8,-336,48,-368,48" />
+
+<item itemtype="Connector" uid="Connector-82" startpinid="Uno-42-3" endpinid="Led-45-lPin" pointList="-320,-80,-364,-80,-364,-116,-420,-116" />
+
+<item itemtype="Connector" uid="Connector-89" startpinid="Push-48-pinP0" endpinid="Rail-49-outnod" pointList="-380,-144,-392,-144,-392,-152" />
+
+<item itemtype="Connector" uid="Connector-90" startpinid="Push-48-switch0pinN" endpinid="Uno-42-2" pointList="-348,-144,-336,-144,-336,-88,-320,-88" />
+
+<item itemtype="Connector" uid="Connector-95" startpinid="Aip31068_i2c-2PinSDA" endpinid="Uno-42-A4" pointList="-108,-120,-108,-96,-176,-96" />
+
+<item itemtype="Connector" uid="Connector-96" startpinid="Uno-42-A5" endpinid="Aip31068_i2c-2PinSCL" pointList="-176,-104,-100,-104,-100,-120" />
+
+</circuit>

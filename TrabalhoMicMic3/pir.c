@@ -20,7 +20,10 @@ void PIR_Init(void)
 
 uint8_t PIR_Checar(void)
 {
-	uint8_t ret = pir_flag;
+	uint8_t ret;
+	cli();
+	ret = pir_flag;
 	pir_flag = 0;
+	sei();
 	return ret;
 }
