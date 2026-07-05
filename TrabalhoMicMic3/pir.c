@@ -12,7 +12,7 @@ ISR(INT0_vect)
 void PIR_Init(void)
 {
 	DDRD &= ~(1 << PD2);
-	PORTD |= (1 << PD2);
+	PORTD &= ~(1 << PD2);
 
 	EICRA |= (1 << ISC01) | (1 << ISC00);
 	EIMSK |= (1 << INT0);
