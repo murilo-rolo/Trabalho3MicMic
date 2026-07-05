@@ -1,7 +1,4 @@
 #include "lcd.h"
-#include "i2c.h"
-#define F_CPU 16000000UL // Assumindo que está a usar 16 MHz
-#include <util/delay.h>
 
 //Bits de controle do PCF8574
 #define LCD_BACKLIGHT 0X08
@@ -9,7 +6,7 @@
 #define LCD_COMMAND 0x00
 #define LCD_DATA 0x01
 
-//Função que envia 1 byte direto do I2C para o chip
+//Funï¿½ï¿½o que envia 1 byte direto do I2C para o chip
 void _LCD_Write_I2C(uint8_t data){
 	I2C_Start();
 	I2C_Write(LCD_ADDR);
@@ -17,7 +14,7 @@ void _LCD_Write_I2C(uint8_t data){
 	I2C_Stop();
 }
 
-//Função que envia 4 bits e dá um pulso no pino EN
+//Funï¿½ï¿½o que envia 4 bits e dï¿½ um pulso no pino EN
 void _LCD_Write_Half(uint8_t half, uint8_t mode){
 	uint8_t data_i2c = (half & 0xF0) | mode;
 	
@@ -30,25 +27,25 @@ void _LCD_Write_Half(uint8_t half, uint8_t mode){
 	_delay_us(50);
 }
 
-// Função que envia comandos (configurações) de 8 bits para o LCD
+// Funï¿½ï¿½o que envia comandos (configuraï¿½ï¿½es) de 8 bits para o LCD
 void LCD_Command(uint8_t cmd){
-	// 4 bits mais altos são enviados no modo COMANDO
+	// 4 bits mais altos sï¿½o enviados no modo COMANDO
 	_LCD_Write_Half(cmd & 0xF0, LCD_COMMAND);
-	// 4 bits mais baixos são jogados pra esquerda e enviados
+	// 4 bits mais baixos sï¿½o jogados pra esquerda e enviados
 	_LCD_Write_Half((cmd << 4) & 0xF0, LCD_COMMAND);
 }
 
 void LCD_Write_Char(char data){
-	//4 bits mais altos são enviados no modo DADO
+	//4 bits mais altos sï¿½o enviados no modo DADO
 	_LCD_Write_Half(data & 0xF0, LCD_DATA);
-	//4 bits mais baixos são jogados pra esquerda e enviados
+	//4 bits mais baixos sï¿½o jogados pra esquerda e enviados
 	_LCD_Write_Half((data<<4) & 0xF0, LCD_DATA);
 }
 
 void LCD_Init(void){
 	_delay_ms(50);
 	
-	//Sequencia de forçar reinício
+	//Sequencia de forï¿½ar reinï¿½cio
 	_LCD_Write_Half(0x30, LCD_COMMAND);
 	_delay_ms(5);
 	_LCD_Write_Half(0x30, LCD_COMMAND);
@@ -74,10 +71,10 @@ void LCD_Clear(void){
 
 
 
-void LCD_Write_String(char *str){
+void LCD_Write_String(const char *str){
 	int i;
 	
-	//Laço de percorrer a palavra até \0
+	//Laï¿½o de percorrer a palavra atï¿½ \0
 	for(i=0;str[i] != '\0';i++){
 		LCD_Write_Char(str[i]);
 	}
@@ -87,11 +84,11 @@ void LCD_Ponteiro(uint8_t linha, uint8_t coluna){
 	uint8_t address;
 	
 	if(linha == 0){
-		address = 0x80; // Seta o endereço base como inicio da linha 1
+		address = 0x80; // Seta o endereï¿½o base como inicio da linha 1
 	} else{
-		address = 0xC0; //Seta o endereço base como inicio da linha 2
+		address = 0xC0; //Seta o endereï¿½o base como inicio da linha 2
 	}
-	LCD_Command(address+coluna); // soma endereço base com coluna escolhida e envia o comando
+	LCD_Command(address+coluna); // soma endereï¿½o base com coluna escolhida e envia o comando
 }
 
 

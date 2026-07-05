@@ -1,8 +1,10 @@
 #define F_CPU 16000000UL
 
-#include <avr/io.h>
-#include <util/delay.h>
 #include "teclado.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include <stdio.h>
 
 static const char keymap[4][4] = {
 	{'1','2','3','A'},
@@ -11,7 +13,34 @@ static const char keymap[4][4] = {
 	{'*','0','#','D'}
 };
 
+static volatile char tecla_buffer = 0;
 static char tecla_anterior = 0;
+
+static char scan_matrix(void)
+{
+	for (uint8_t i = 0; i < 4; i++) {
+		PORTD |= 0xF0;
+		PORTD &= ~(1 << (4 + i));
+		_delay_us(50);
+		for (uint8_t j = 0; j < 4; j++) {
+			if ((PINB & (1 << j)) == 0) {
+				PORTD |= 0xF0;
+				return keymap[i][j];
+			}
+		}
+	}
+	PORTD |= 0xF0;
+	return 0;
+}
+
+ISR(TIMER2_COMPA_vect)
+{
+	char t = scan_matrix();
+	if (t != 0 && t != tecla_anterior) {
+		tecla_buffer = t;
+	}
+	tecla_anterior = t;
+}
 
 void setup_teclado(void)
 {
@@ -20,38 +49,19 @@ void setup_teclado(void)
 
 	DDRB &= ~0x0F;
 	PORTB |= 0x0F;
+
+	TCCR2A = (1 << WGM21);
+	TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);
+	OCR2A = 156;
+	TIMSK2 = (1 << OCIE2A);
 }
 
-char teclado_scan(void)
+char teclado_get_key(void)
 {
-	char tecla = 0;
-	uint8_t achou = 0;
-
-	for (uint8_t i = 0; i < 4 && !achou; i += 1) {
-		PORTD |= 0xF0;
-		PORTD &= ~(1 << (4 + i));
-		_delay_us(50);
-
-		for (uint8_t j = 0; j < 4; j += 1) {
-			if ((PINB & (1 << j)) == 0) {
-				tecla = keymap[i][j];
-				achou = 1;
-				break;
-			}
-		}
+	char t = tecla_buffer;
+	if (t) {
+		tecla_buffer = 0;
+		printf("%c", t);
 	}
-
-	PORTD |= 0xF0;
-
-	if (tecla != 0) {
-		if (tecla != tecla_anterior) {
-			_delay_ms(20);
-			tecla_anterior = tecla;
-			return tecla;
-		}
-		return 0;
-	}
-
-	tecla_anterior = 0;
-	return 0;
+	return t;
 }

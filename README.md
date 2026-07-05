@@ -11,6 +11,7 @@
 - Buzzer ativo
 - LEDs indicadores (armado/desarmado)
 - Senha armazenada na EEPROM
+- Mensagens do display repetidas na UART para debug
 
 ## Pinagem
 
@@ -40,9 +41,10 @@ L4(D7)   [*]     [0]     [#]      [D]
 - Tamanho fixo: 6 dígitos
 - Senha de fábrica: `123456`
 - Armazenada na EEPROM interna
-- Alteração via sequência `A → B → A` no teclado
-- **C** confirma a senha digitada
+- **#** confirma a senha digitada
 - **D** apaga o último dígito
+- ***** limpa todos os dígitos digitados
+- Alteração via sequência `A → A` no teclado
 
 ## Máquina de estados
 
@@ -51,7 +53,7 @@ stateDiagram-v2
     DISARMED --> ARMED : senha correta
     ARMED --> ALARM : PIR detecta
     ALARM --> DISARMED : senha correta
-    DISARMED --> CONFIG : A-B-A
+    DISARMED --> CONFIG : A-A
     CONFIG --> DISARMED : nova senha
 ```
 
@@ -80,7 +82,7 @@ stateDiagram-v2
 - ler_senha() vai colocar a senha em um buffer para poder comparar com a senha digitada no teclado.
 - senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica.
 - sistema_init() junta todos os setups em uma função; sistema_loop() executa a máquina de estados.
-- coletar_digitos() lê dígitos do teclado até o usuário pressionar **C** (confirma) ou apaga com **D**.
+- coletar_digitos() lê dígitos do teclado: **#** confirma, **D** apaga 1 dígito, ***** limpa tudo.
 
 ## Como executar o projeto a partir do projeto do Github
 

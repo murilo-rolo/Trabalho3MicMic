@@ -5,16 +5,22 @@
 #include "eeprom.h"
 #include "pir.h"
 #include "i2c.h"
+#include "uart.h"
+#include "timer.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <string.h>
 
 #define TAM 6
+#define TEMPO_ALARME 10000
 
-typedef enum { DESARMADO, ARMADO, ALARME, CONFIG } EstadoAlarme;
+typedef enum { DESARMADO, ARMADO, CONFIG } EstadoAlarme;
 
 static EstadoAlarme estado = DESARMADO;
+static uint8_t alarme_ativo = 0;
+static uint32_t alarme_inicio = 0;
+static uint32_t ultimo_blink = 0;
 
 static inline void buzz_on(void)  { PORTD |= (1 << PD3); }
 static inline void buzz_off(void) { PORTD &= ~(1 << PD3); }
@@ -32,12 +38,10 @@ static uint8_t coletar_digitos(char *buffer, uint8_t max, char primeira)
 		buffer[count++] = primeira;
 		LCD_Ponteiro(1, 0);
 		LCD_Write_Char('*');
-	} else if (primeira == 'C') {
-		return 0;
 	}
 
 	while (1) {
-		tecla = teclado_scan();
+		tecla = teclado_get_key();
 		if (tecla == 0) continue;
 		if (tecla >= '0' && tecla <= '9') {
 			if (count < max) {
@@ -50,16 +54,27 @@ static uint8_t coletar_digitos(char *buffer, uint8_t max, char primeira)
 			count--;
 			LCD_Ponteiro(1, count);
 			LCD_Write_Char(' ');
-		} else if (tecla == 'C') {
+			printf("Delete\n");
+		} else if (tecla == '*') {
+			printf("Buffer limpo\n");
+			while (count > 0) {
+				count--;
+				LCD_Ponteiro(1, count);
+				LCD_Write_Char(' ');
+			}
+		} else if (tecla == '#') {
+			printf("Confirmado\n");
 			return count;
 		}
 	}
 }
 
-static void sistema_init(void)
+int main(void)
 {
 	I2C_Init();
 	LCD_Init();
+	UART_Init(9600);
+	timer_init();
 	setup_teclado();
 	PIR_Init();
 
@@ -68,186 +83,189 @@ static void sistema_init(void)
 
 	if (!senha_existe()) {
 		setar_senha("123456");
+		eeprom_write_byte((uint8_t*)ENDERECO_FLAG, MAGIC_FLAG);
 	}
 
 	sei();
 
+	printf("Sistema de Alarme Iniciado\n");
+
 	estado = DESARMADO;
 	LCD_Clear();
 	LCD_Write_String("Desarmado");
+	printf("Desarmado\n");
 	led_des_on();
 	led_arm_off();
 	buzz_off();
-}
 
-static void sistema_loop(void)
-{
-	static EstadoAlarme ult_estado = 0xFF;
-	char tecla;
-	char senha_eeprom[TAM];
+	while (1) {
+		static EstadoAlarme ult_estado = 0xFF;
+		char tecla;
+		char senha_eeprom[TAM];
 
-	if (estado != ult_estado) {
-		ult_estado = estado;
+		if (estado != ult_estado) {
+			ult_estado = estado;
+			switch (estado) {
+				case DESARMADO:
+					LCD_Clear();
+					LCD_Write_String("Desarmado");
+					printf("Estado: DESARMADO\n");
+					led_des_on();
+					led_arm_off();
+					buzz_off();
+					break;
+				case ARMADO:
+					LCD_Clear();
+					LCD_Write_String("Armado");
+					printf("Estado: ARMADO\n");
+					led_arm_on();
+					led_des_off();
+					buzz_off();
+					break;
+				case CONFIG:
+					printf("Estado: CONFIG\n");
+					break;
+			}
+		}
+
 		switch (estado) {
 			case DESARMADO:
-				LCD_Clear();
-				LCD_Write_String("Desarmado");
-				led_des_on();
-				led_arm_off();
-				buzz_off();
+			{
+				static char ultimas[3] = {0, 0, 0};
+				char digito_buf[TAM];
+
+				tecla = teclado_get_key();
+				if (tecla != 0) {
+					ultimas[0] = ultimas[1];
+					ultimas[1] = ultimas[2];
+					ultimas[2] = tecla;
+
+					if (tecla >= '0' && tecla <= '9') {
+						uint8_t n = coletar_digitos(digito_buf, TAM, tecla);
+						if (n == TAM) {
+							ler_senha(senha_eeprom);
+							if (memcmp(digito_buf, senha_eeprom, TAM) == 0) {
+								printf("\nSenha correta - Armando\n");
+								estado = ARMADO;
+							} else {
+								LCD_Clear();
+								LCD_Write_String("Senha Incorreta!");
+								printf("\nSenha Incorreta!\n");
+								_delay_ms(1500);
+							}
+						} else {
+							LCD_Clear();
+							LCD_Write_String("Desarmado");
+							printf("Desarmado\n");
+						}
+					} else if (ultimas[1] == 'A' && ultimas[2] == 'A') {
+						printf("Sequencia AA detectada - Config\n");
+						LCD_Clear();
+						LCD_Write_String("Config");
+						_delay_ms(1000);
+						estado = CONFIG;
+					}
+				} else if (ultimas[0] == 'A' && ultimas[1] == 'B' && ultimas[2] == 'A') {
+					estado = CONFIG;
+				}
 				break;
+			}
+
 			case ARMADO:
-				LCD_Clear();
-				LCD_Write_String("Armado");
-				led_arm_on();
-				led_des_off();
-				buzz_off();
-				break;
-			case ALARME:
-				LCD_Clear();
-				LCD_Write_String("    ALARME!");
-				led_arm_on();
-				led_des_off();
-				buzz_on();
-				break;
-			case CONFIG:
-				break;
-		}
-	}
+			{
+				char digito_buf[TAM];
 
-	switch (estado) {
-		case DESARMADO:
-		{
-			static char ultimas[3] = {0, 0, 0};
-			char digito_buf[TAM];
+				if (!alarme_ativo && PIR_Checar()) {
+					alarme_ativo = 1;
+					alarme_inicio = millis();
+					ultimo_blink = millis();
+					buzz_on();
+					LCD_Clear();
+					LCD_Write_String("ALARME!");
+					printf("ALARME!\n");
+				}
 
-			tecla = teclado_scan();
-			if (tecla != 0) {
-				ultimas[0] = ultimas[1];
-				ultimas[1] = ultimas[2];
-				ultimas[2] = tecla;
+				if (alarme_ativo) {
+					if (millis() - alarme_inicio >= TEMPO_ALARME) {
+						alarme_ativo = 0;
+						buzz_off();
+						LCD_Clear();
+						LCD_Write_String("Armado");
+						printf("Armado\n");
+						led_arm_on();
+						led_des_off();
+					}
+					if (millis() - ultimo_blink >= 500) {
+						ultimo_blink = millis();
+						PORTB ^= (1 << PB4) | (1 << PB5);
+					}
+				} else {
+					ult_estado = 0xFF;
+				}
 
+				tecla = teclado_get_key();
 				if (tecla >= '0' && tecla <= '9') {
 					uint8_t n = coletar_digitos(digito_buf, TAM, tecla);
 					if (n == TAM) {
 						ler_senha(senha_eeprom);
 						if (memcmp(digito_buf, senha_eeprom, TAM) == 0) {
-							estado = ARMADO;
+							printf("\nSenha correta - Desarmando\n");
+							alarme_ativo = 0;
+							buzz_off();
+							estado = DESARMADO;
 						} else {
 							LCD_Clear();
 							LCD_Write_String("Senha Incorreta!");
+							printf("\nSenha Incorreta!\n");
 							_delay_ms(1500);
+							ult_estado = 0xFF;
 						}
 					} else {
-						LCD_Clear();
-						LCD_Write_String("Desarmado");
-					}
-				} else if (ultimas[0] == 'A' && ultimas[1] == 'B' && ultimas[2] == 'A') {
-					estado = CONFIG;
-				}
-			}
-			break;
-		}
-
-		case ARMADO:
-		{
-			char digito_buf[TAM];
-
-			if (PIR_Checar()) {
-				estado = ALARME;
-				break;
-			}
-
-			tecla = teclado_scan();
-			if (tecla >= '0' && tecla <= '9') {
-				uint8_t n = coletar_digitos(digito_buf, TAM, tecla);
-				if (n == TAM) {
-					ler_senha(senha_eeprom);
-					if (memcmp(digito_buf, senha_eeprom, TAM) == 0) {
-						estado = DESARMADO;
-					} else {
-						LCD_Clear();
-						LCD_Write_String("Senha Incorreta!");
-						_delay_ms(1500);
 						ult_estado = 0xFF;
 					}
 				} else {
 					ult_estado = 0xFF;
 				}
-			}
-			break;
-		}
-
-		case ALARME:
-		{
-			static uint16_t pisca = 0;
-			char digito_buf[TAM];
-
-			pisca++;
-			if (pisca >= 200) {
-				pisca = 0;
-				PORTB ^= (1 << PB4) | (1 << PB5);
+				break;
 			}
 
-			tecla = teclado_scan();
-			if (tecla >= '0' && tecla <= '9') {
-				uint8_t n = coletar_digitos(digito_buf, TAM, tecla);
-				if (n == TAM) {
-					ler_senha(senha_eeprom);
-					if (memcmp(digito_buf, senha_eeprom, TAM) == 0) {
-						estado = DESARMADO;
-					} else {
-						LCD_Clear();
-						LCD_Write_String("Senha Incorreta!");
-						_delay_ms(1500);
-						ult_estado = 0xFF;
-					}
-				} else {
-					ult_estado = 0xFF;
+			case CONFIG:
+			{
+				char senha1[TAM], senha2[TAM];
+
+				LCD_Clear();
+				LCD_Write_String("Nova senha (6):");
+				printf("Nova senha (6):\n");
+				if (coletar_digitos(senha1, TAM, 0) != TAM) {
+					estado = DESARMADO;
+					break;
 				}
-			}
-			break;
-		}
 
-		case CONFIG:
-		{
-			char senha1[TAM], senha2[TAM];
+				LCD_Clear();
+				LCD_Write_String("Confirme:");
+				printf("\nConfirme:\n");
+				if (coletar_digitos(senha2, TAM, 0) != TAM) {
+					estado = DESARMADO;
+					break;
+				}
 
-			LCD_Clear();
-			LCD_Write_String("Nova senha (6):");
-			if (coletar_digitos(senha1, TAM, 0) != TAM) {
+				if (memcmp(senha1, senha2, TAM) == 0) {
+					setar_senha(senha1);
+					LCD_Clear();
+					LCD_Write_String("Senha alterada!");
+					printf("\nSenha alterada!\n");
+					_delay_ms(1500);
+				} else {
+					printf("Senhas nao conferem\n");
+					LCD_Clear();
+					LCD_Write_String("Erro!");
+					printf("\nErro!\n");
+					_delay_ms(1500);
+				}
+
 				estado = DESARMADO;
 				break;
 			}
-
-			LCD_Clear();
-			LCD_Write_String("Confirme:");
-			if (coletar_digitos(senha2, TAM, 0) != TAM) {
-				estado = DESARMADO;
-				break;
-			}
-
-			if (memcmp(senha1, senha2, TAM) == 0) {
-				setar_senha(senha1);
-				LCD_Clear();
-				LCD_Write_String("Senha alterada!");
-				_delay_ms(1500);
-			} else {
-				LCD_Clear();
-				LCD_Write_String("Erro!");
-				_delay_ms(1500);
-			}
-
-			estado = DESARMADO;
-			break;
 		}
-	}
-}
-
-int main(void)
-{
-	sistema_init();
-	while (1) {
-		sistema_loop();
 	}
 }
