@@ -54,7 +54,16 @@ static uint8_t coletar_digitos(char *buffer, uint8_t max, char primeira)
 			count--;
 			LCD_Ponteiro(1, count);
 			LCD_Write_Char(' ');
-		} else if (tecla == 'C') {
+			printf("Delete\n");
+		} else if (tecla == '*') {
+			printf("Buffer limpo\n");
+			while (count > 0) {
+				count--;
+				LCD_Ponteiro(1, count);
+				LCD_Write_Char(' ');
+			}
+		} else if (tecla == '#') {
+			printf("Confirmado\n");
 			return count;
 		}
 	}
@@ -149,8 +158,11 @@ int main(void)
 							LCD_Write_String("Desarmado");
 							printf("Desarmado\n");
 						}
-					} else if (ultimas[0] == 'A' && ultimas[1] == 'B' && ultimas[2] == 'A') {
-						printf("Sequencia ABA detectada - Config\n");
+					} else if (ultimas[1] == 'A' && ultimas[2] == 'A') {
+						printf("Sequencia AA detectada - Config\n");
+						LCD_Clear();
+						LCD_Write_String("Config");
+						_delay_ms(1000);
 						estado = CONFIG;
 					}
 				}
