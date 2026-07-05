@@ -43,7 +43,7 @@ L4(D7)   [*]     [0]     [#]      [D]
 - Armazenada na EEPROM interna
 - **#** confirma a senha digitada
 - **D** apaga o último dígito
-- ***** limpa todos os dígitos digitados
+- `*` limpa todos os dígitos digitados
 - Alteração via sequência `A → A` no teclado
 
 ## Máquina de estados
@@ -85,7 +85,7 @@ stateDiagram-v2
 - setar_senha() serve para configurar uma nova senha.
 - ler_senha() vai colocar a senha em um buffer para poder comparar com a senha digitada no teclado.
 - senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica.
-- coletar_digitos() lê dígitos do teclado: **#** confirma, **D** apaga 1 dígito, ***** limpa tudo.
+- coletar_digitos() lê dígitos do teclado: **#** confirma, **D** apaga 1 dígito, `*` limpa tudo.
 
 ## Como executar o projeto a partir do projeto do Github
 
