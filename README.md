@@ -51,10 +51,14 @@ L4(D7)   [*]     [0]     [#]      [D]
 ```mermaid
 stateDiagram-v2
     DISARMED --> ARMED : senha correta
-    ARMED --> ALARM : PIR detecta
-    ALARM --> DISARMED : senha correta
+    ARMED --> DISARMED : senha correta
     DISARMED --> CONFIG : A-A
     CONFIG --> DISARMED : nova senha
+    state ARMED {
+        [*] --> Vigilante
+        Vigilante --> Alarme : PIR detecta
+        Alarme --> Vigilante : 10s
+    }
 ```
 
 ## Plano de implementação
@@ -63,25 +67,24 @@ stateDiagram-v2
 |---|---|---|---|---|
 | 1 | `i2c.c / i2c.h` | Funções básicas do TWI: `I2C_Init()`, `I2C_Start()`, `I2C_Stop()`, `I2C_Write()` | Nenhuma | dev1 |
 | 2 | `lcd.c / lcd.h` | Controle do LCD 16×2 via PCF8574: `LCD_Init()`, `LCD_Clear()`, `LCD_Write_Char()`, `LCD_Write_String()`, `LCD_Ponteiro()`, `LCD_Command()` | `i2c` | dev1 |
-| 3 | `teclado.c / teclado.h` | Varredura do teclado 4×4: `setup_teclado()`, `teclado_scan()`, com debounce por software | Nenhuma | dev2 |
+| 3 | `teclado.c / teclado.h` | Varredura do teclado 4×4: `setup_teclado()`, `teclado_get_key()`, com debounce por software | Nenhuma | dev2 |
 | 4 | `eeprom.c / eeprom.h` | Leitura e gravação na EEPROM: `setar_senha()`, `ler_senha()`, `senha_existe()` | Nenhuma | dev2 |
 | 5 | `pir.c / pir.h` | Detecção PIR com interrupção INT0: `PIR_Init()`, `PIR_Checar()` | Nenhuma | dev3 |
-| 6 | `main.c` | Configuração geral + máquina de estados (`sistema_init()`, `sistema_loop()`) integrando todos os módulos | `i2c`, `lcd`, `teclado`, `eeprom`, `pir` |  dev3 |
+| 6 | `main.c` | Configuração geral + máquina de estados integrando todos os módulos | `i2c`, `lcd`, `teclado`, `eeprom`, `pir` |  dev3 |
 
 ### Teste (no main.c)
 
 - **dev1**: testar se uma string aparece no display LCD após configurar a comunicação I2C.
 - **dev2**:
-  - **Teclado**: percorrer todas as 16 teclas e verificar se `teclado_scan()` retorna o valor esperado para cada uma; testar o debounce pressionando e soltando rapidamente.
+  - **Teclado**: percorrer todas as 16 teclas e verificar se `teclado_get_key()` retorna o valor esperado para cada uma; testar o debounce pressionando e soltando rapidamente.
   - **EEPROM**: gravar uma senha com `setar_senha()`, ler com `ler_senha()` e confirmar que os valores coincidem; testar `senha_existe()` antes e depois de alterar a senha. 
 
 ### Notas
 - LCD_Ponteiro() serve para posicionar o cursor do display antes de escrever.
-- teclado_scan() checa o teclado e retorna alguma tecla pressionada.
+- teclado_get_key() checa o teclado e retorna alguma tecla pressionada.
 - setar_senha() serve para configurar uma nova senha.
 - ler_senha() vai colocar a senha em um buffer para poder comparar com a senha digitada no teclado.
 - senha_existe() é uma função auxiliar lógica para saber se uma senha diferente da de fábrica.
-- sistema_init() junta todos os setups em uma função; sistema_loop() executa a máquina de estados.
 - coletar_digitos() lê dígitos do teclado: **#** confirma, **D** apaga 1 dígito, ***** limpa tudo.
 
 ## Como executar o projeto a partir do projeto do Github
