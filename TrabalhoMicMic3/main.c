@@ -165,6 +165,8 @@ int main(void)
 						_delay_ms(1000);
 						estado = CONFIG;
 					}
+				} else if (ultimas[0] == 'A' && ultimas[1] == 'B' && ultimas[2] == 'A') {
+					estado = CONFIG;
 				}
 				break;
 			}
@@ -197,6 +199,8 @@ int main(void)
 						ultimo_blink = millis();
 						PORTB ^= (1 << PB4) | (1 << PB5);
 					}
+				} else {
+					ult_estado = 0xFF;
 				}
 
 				tecla = teclado_get_key();
@@ -219,6 +223,8 @@ int main(void)
 					} else {
 						ult_estado = 0xFF;
 					}
+				} else {
+					ult_estado = 0xFF;
 				}
 				break;
 			}
