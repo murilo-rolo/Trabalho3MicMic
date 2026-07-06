@@ -19,17 +19,17 @@ static char tecla_anterior = 0;
 static char scan_matrix(void)
 {
 	for (uint8_t i = 0; i < 4; i++) {
-		PORTD |= 0xF0;
-		PORTD &= ~(1 << (4 + i));
+		PORTB |= 0x0F;
+		PORTB &= ~(0x08 >> i);
 		_delay_us(50);
 		for (uint8_t j = 0; j < 4; j++) {
-			if ((PINB & (1 << j)) == 0) {
-				PORTD |= 0xF0;
+			if ((PIND & (0x80 >> j)) == 0) {
+				PORTB |= 0x0F;
 				return keymap[i][j];
 			}
 		}
 	}
-	PORTD |= 0xF0;
+	PORTB |= 0x0F;
 	return 0;
 }
 
@@ -44,11 +44,11 @@ ISR(TIMER2_COMPA_vect)
 
 void setup_teclado(void)
 {
-	DDRD |= 0xF0;
-	PORTD |= 0xF0;
-
-	DDRB &= ~0x0F;
+	DDRB |= 0x0F;
 	PORTB |= 0x0F;
+
+	DDRD &= ~0xF0;
+	PORTD |= 0xF0;
 
 	TCCR2A = (1 << WGM21);
 	TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);

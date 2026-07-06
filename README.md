@@ -21,19 +21,19 @@
 | LCD SCL | A5 | PC5 |
 | PIR OUT | D2 | PD2 (INT0) |
 | Buzzer | D3 | PD3 |
-| Keypad Linhas (saída) | D4–D7 | PD4–PD7 |
-| Keypad Colunas (entrada) | D8–D11 | PB0–PB3 |
+| Keypad Linhas (saída) | D11–D8 | PB3–PB0 |
+| Keypad Colunas (entrada) | D7–D4 | PD7–PD4 |
 | LED Armado | D12 | PB4 |
 | LED Desarmado | D13 | PB5 |
 
 ### Pinagem do Teclado matricial 4×4 no Arduino
 
 ```
-         C1(D8)  C2(D9)  C3(D10)  C4(D11)
-L1(D4)   [1]     [2]     [3]      [A]
-L2(D5)   [4]     [5]     [6]      [B]
-L3(D6)   [7]     [8]     [9]      [C]
-L4(D7)   [*]     [0]     [#]      [D]
+         C1(D7)  C2(D6)  C3(D5)  C4(D4)
+L1(D11)  [1]     [2]     [3]     [A]
+L2(D10)  [4]     [5]     [6]     [B]
+L3(D9)   [7]     [8]     [9]     [C]
+L4(D8)   [*]     [0]     [#]     [D]
 ```
 
 ## Senha
