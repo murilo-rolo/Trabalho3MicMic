@@ -9,7 +9,7 @@
 - Teclado matricial 4×4
 - Display LCD 16×2
 - Buzzer ativo
-- LEDs indicadores (armado/desarmado)
+- LED indicador de atividade (D13) — aceso em operação, pisca no alarme
 - Senha armazenada na EEPROM
 - Mensagens do display repetidas na UART para debug
 
@@ -23,8 +23,7 @@
 | Buzzer | D3 | PD3 |
 | Keypad Linhas (saída) | D11–D8 | PB3–PB0 |
 | Keypad Colunas (entrada) | D7–D4 | PD7–PD4 |
-| LED Armado | D12 | PB4 |
-| LED Desarmado | D13 | PB5 |
+| LED Atividade | D13 | PB5 |
 
 ### Pinagem do Teclado matricial 4×4 no Arduino
 
@@ -45,20 +44,18 @@ L4(D8)   [*]     [0]     [#]     [D]
 - **D** apaga o último dígito
 - `*` limpa todos os dígitos digitados
 - Alteração via sequência `A → A` no teclado
+- `B → B` no modo desarmado alterna entre alarme de 10s e infinito
 
 ## Máquina de estados
 
 ```mermaid
 stateDiagram-v2
     DISARMED --> ARMED : senha correta
-    ARMED --> DISARMED : senha correta
+    ARMED --> ALARME : PIR detecta
+    ALARME --> ARMED : 10s
+    ALARME --> DISARMED : senha correta
     DISARMED --> CONFIG : A-A
     CONFIG --> DISARMED : nova senha
-    state ARMED {
-        [*] --> Vigilante
-        Vigilante --> Alarme : PIR detecta
-        Alarme --> Vigilante : 10s
-    }
 ```
 
 ## Plano de implementação
