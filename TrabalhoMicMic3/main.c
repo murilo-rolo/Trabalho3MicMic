@@ -15,19 +15,18 @@
 #define TAM 6
 #define TEMPO_ALARME 10000
 
-typedef enum { DESARMADO, ARMADO, CONFIG } EstadoAlarme;
+typedef enum { DESARMADO, ARMADO, ALARME, CONFIG } EstadoAlarme;
 
 static EstadoAlarme estado = DESARMADO;
-static uint8_t alarme_ativo = 0;
 static uint32_t alarme_inicio = 0;
 static uint32_t ultimo_blink = 0;
+static uint8_t alarme_infinito = 0;
 
 static inline void buzz_on(void)  { PORTD |= (1 << PD3); }
 static inline void buzz_off(void) { PORTD &= ~(1 << PD3); }
-static inline void led_arm_on(void)  { PORTB |= (1 << PB4); }
-static inline void led_arm_off(void) { PORTB &= ~(1 << PB4); }
-static inline void led_des_on(void)  { PORTB |= (1 << PB5); }
-static inline void led_des_off(void) { PORTB &= ~(1 << PB5); }
+static inline void led_on(void)      { PORTB |= (1 << PB5); }
+static inline void led_off(void)     { PORTB &= ~(1 << PB5); }
+static inline void led_toggle(void)  { PORTB ^= (1 << PB5); }
 
 static uint8_t coletar_digitos(char *buffer, uint8_t max, char primeira)
 {
@@ -79,7 +78,7 @@ int main(void)
 	PIR_Init();
 
 	DDRD |= (1 << PD3);
-	DDRB |= (1 << PB4) | (1 << PB5);
+	DDRB |= (1 << PB5);
 
 	if (!senha_existe()) {
 		setar_senha("123456");
@@ -94,8 +93,6 @@ int main(void)
 	LCD_Clear();
 	LCD_Write_String("Desarmado");
 	printf("Desarmado\n");
-	led_des_on();
-	led_arm_off();
 	buzz_off();
 
 	while (1) {
@@ -110,20 +107,27 @@ int main(void)
 					LCD_Clear();
 					LCD_Write_String("Desarmado");
 					printf("Estado: DESARMADO\n");
-					led_des_on();
-					led_arm_off();
+					led_on();
 					buzz_off();
 					break;
 				case ARMADO:
 					LCD_Clear();
 					LCD_Write_String("Armado");
 					printf("Estado: ARMADO\n");
-					led_arm_on();
-					led_des_off();
+					led_on();
 					buzz_off();
+					break;
+				case ALARME:
+					LCD_Clear();
+					LCD_Write_String("    ALARME!");
+					printf("Estado: ALARME\n");
+					buzz_on();
+					alarme_inicio = millis();
+					ultimo_blink = millis();
 					break;
 				case CONFIG:
 					printf("Estado: CONFIG\n");
+					led_on();
 					break;
 			}
 		}
@@ -164,9 +168,13 @@ int main(void)
 						LCD_Write_String("Config");
 						_delay_ms(1000);
 						estado = CONFIG;
+					} else if (ultimas[1] == 'B' && ultimas[2] == 'B') {
+						alarme_infinito = !alarme_infinito;
+						printf("\nModo alarme: %s\n", alarme_infinito ? "infinito" : "10s");
+						LCD_Clear();
+						LCD_Write_String(alarme_infinito ? "Modo: infinito" : "Modo: 10s");
+						_delay_ms(1500);
 					}
-				} else if (ultimas[0] == 'A' && ultimas[1] == 'B' && ultimas[2] == 'A') {
-					estado = CONFIG;
 				}
 				break;
 			}
@@ -175,32 +183,9 @@ int main(void)
 			{
 				char digito_buf[TAM];
 
-				if (!alarme_ativo && PIR_Checar()) {
-					alarme_ativo = 1;
-					alarme_inicio = millis();
-					ultimo_blink = millis();
-					buzz_on();
-					LCD_Clear();
-					LCD_Write_String("ALARME!");
-					printf("ALARME!\n");
-				}
-
-				if (alarme_ativo) {
-					if (millis() - alarme_inicio >= TEMPO_ALARME) {
-						alarme_ativo = 0;
-						buzz_off();
-						LCD_Clear();
-						LCD_Write_String("Armado");
-						printf("Armado\n");
-						led_arm_on();
-						led_des_off();
-					}
-					if (millis() - ultimo_blink >= 500) {
-						ultimo_blink = millis();
-						PORTB ^= (1 << PB4) | (1 << PB5);
-					}
-				} else {
-					ult_estado = 0xFF;
+				if (PIR_Checar()) {
+					estado = ALARME;
+					break;
 				}
 
 				tecla = teclado_get_key();
@@ -210,21 +195,51 @@ int main(void)
 						ler_senha(senha_eeprom);
 						if (memcmp(digito_buf, senha_eeprom, TAM) == 0) {
 							printf("\nSenha correta - Desarmando\n");
-							alarme_ativo = 0;
-							buzz_off();
 							estado = DESARMADO;
 						} else {
 							LCD_Clear();
 							LCD_Write_String("Senha Incorreta!");
 							printf("\nSenha Incorreta!\n");
 							_delay_ms(1500);
-							ult_estado = 0xFF;
+							LCD_Clear();
+							LCD_Write_String("Armado");
 						}
-					} else {
-						ult_estado = 0xFF;
 					}
-				} else {
-					ult_estado = 0xFF;
+				}
+				break;
+			}
+
+			case ALARME:
+			{
+				char digito_buf[TAM];
+
+				if (!alarme_infinito && millis() - alarme_inicio >= TEMPO_ALARME) {
+					estado = ARMADO;
+					break;
+				}
+
+				if (millis() - ultimo_blink >= 500) {
+					ultimo_blink = millis();
+					led_toggle();
+				}
+
+				tecla = teclado_get_key();
+				if (tecla >= '0' && tecla <= '9') {
+					uint8_t n = coletar_digitos(digito_buf, TAM, tecla);
+					if (n == TAM) {
+						ler_senha(senha_eeprom);
+						if (memcmp(digito_buf, senha_eeprom, TAM) == 0) {
+							printf("\nSenha correta - Desarmando\n");
+							estado = DESARMADO;
+						} else {
+							LCD_Clear();
+							LCD_Write_String("Senha Incorreta!");
+							printf("\nSenha Incorreta!\n");
+							_delay_ms(1500);
+							LCD_Clear();
+							LCD_Write_String("    ALARME!");
+						}
+					}
 				}
 				break;
 			}
